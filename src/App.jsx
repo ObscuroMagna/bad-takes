@@ -261,9 +261,67 @@ function getInitialIndex() {
   return -1;
 }
 
+// Responsive wrapper — scales the 340px clapperboard to fit narrow screens
+const CLAP_NATIVE_W = 340;
+const CLAP_NATIVE_H = 268;
+
+function ClapperWrap({ children, onClick }) {
+  const [scale, setScale] = useState(1);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    function measure() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const scaleW = Math.min(1, (vw - 48) / CLAP_NATIVE_W);
+      const scaleH = Math.min(1, (vh * 0.33) / CLAP_NATIVE_H);
+      setScale(Math.min(scaleW, scaleH));
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  return (
+    <div
+      ref={wrapRef}
+      onClick={onClick}
+      style={{
+        position: "relative",
+        marginBottom: "min(20px, 2vh)",
+        cursor: "pointer",
+        width: CLAP_NATIVE_W * scale,
+        height: CLAP_NATIVE_H * scale,
+        flexShrink: 0,
+      }}
+    >
+      <div
+        style={{
+          transformOrigin: "top left",
+          transform: `scale(${scale})`,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Simple mobile breakpoint hook
+function useIsMobile(breakpoint = 600) {
+  const [mobile, setMobile] = useState(window.innerWidth < breakpoint);
+  useEffect(() => {
+    function onResize() { setMobile(window.innerWidth < breakpoint); }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+  return mobile;
+}
+
 const emojis = ["\u{1F525}", "\u{1F480}", "\u{1F624}", "\u{1F921}", "\u{1F4A9}", "\u{1F644}", "\u{1F631}", "\u{1FAE0}"];
 
 export default function App() {
+  const isMobile = useIsMobile();
   const [initialFromUrl] = useState(getInitialIndex() >= 0);
   const [currentIndex, setCurrentIndex] = useState(getInitialIndex);
   const [isOpen, setIsOpen] = useState(false);
@@ -373,7 +431,7 @@ export default function App() {
         justifyContent: "center",
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: 24,
+        padding: "min(24px, 3vh) 16px",
         overflow: "hidden",
         position: "relative",
       }}
@@ -408,10 +466,10 @@ export default function App() {
       <p
         style={{
           color: "#666",
-          fontSize: 14,
-          letterSpacing: 4,
+          fontSize: "clamp(11px, 3vw, 14px)",
+          letterSpacing: "clamp(2px, 1vw, 4px)",
           textTransform: "uppercase",
-          marginBottom: 12,
+          marginBottom: "min(12px, 1.5vh)",
         }}
       >
         {started
@@ -419,17 +477,7 @@ export default function App() {
           : "Click the clapperboard to start"}
       </p>
 
-      <div
-        style={{
-          position: "relative",
-          marginBottom: 20,
-          cursor: "pointer",
-          height: 268,
-          width: 340,
-          flexShrink: 0,
-        }}
-        onClick={nextTake}
-      >
+      <ClapperWrap onClick={nextTake}>
         <Clapperboard
           isOpen={isOpen}
           onAnimationEnd={handleClapperAnimationEnd}
@@ -437,13 +485,12 @@ export default function App() {
         {particles.map((p) => (
           <Particle key={p.id} emoji={p.emoji} startX={p.x} />
         ))}
-      </div>
+      </ClapperWrap>
 
-      {/* Bottom section — fixed height so layout never shifts */}
+      {/* Bottom section — min-height reserves space so layout doesn't shift */}
       <div
         style={{
-          height: 320,
-          flexShrink: 0,
+          minHeight: 240,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -451,260 +498,325 @@ export default function App() {
           width: "100%",
         }}
       >
-      {/* Take display: vote buttons flanking film strip */}
+      {/* Take display area */}
       <div
         style={{
-          minHeight: 180,
+          minHeight: isMobile ? 160 : 180,
           maxWidth: 800,
           width: "100%",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: "min(24px, 3vw)",
           padding: "0 8px",
         }}
       >
         {showTake && currentIndex >= 0 && (
           <>
-            {/* Trash vote button — left side */}
-            <button
-              onClick={() => castVote("down")}
-              style={{
-                background: voted === "down" ? "rgba(244,67,54,0.15)" : "rgba(255,255,255,0.03)",
-                border: voted === "down" ? "2px solid rgba(244,67,54,0.5)" : "2px solid rgba(255,255,255,0.08)",
-                borderRadius: "50%",
-                width: "min(64px, 14vw)",
-                height: "min(64px, 14vw)",
-                minWidth: "min(64px, 14vw)",
-                cursor: voted ? "default" : "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.25s ease",
-                opacity: takeOpacity * (voted && voted !== "down" ? 0.3 : 1),
-                transform: `scale(${voted === "down" ? 1.15 : takeOpacity})`,
-              }}
-            >
-              <span style={{ fontSize: "min(28px, 7vw)" }}>{"\u{1F5D1}\uFE0F"}</span>
-            </button>
-
-            {/* Take text — film strip frame */}
+            {/* Desktop: row with flanking buttons. Mobile: just the film strip */}
             <div
               style={{
-                flex: 1,
-                opacity: takeOpacity,
-                transform: takeOpacity === 1 ? "translateY(0) scale(1)" : "translateY(16px) scale(0.95)",
-                transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
-                position: "relative",
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: isMobile ? 0 : 24,
               }}
             >
-              {/* Film strip container */}
+              {/* Trash vote button — desktop only (left side) */}
+              {!isMobile && (
+                <button
+                  onClick={() => castVote("down")}
+                  style={{
+                    background: voted === "down" ? "rgba(244,67,54,0.15)" : "rgba(255,255,255,0.03)",
+                    border: voted === "down" ? "2px solid rgba(244,67,54,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                    borderRadius: "50%",
+                    width: 64,
+                    height: 64,
+                    minWidth: 64,
+                    cursor: voted ? "default" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.25s ease",
+                    opacity: takeOpacity * (voted && voted !== "down" ? 0.3 : 1),
+                    transform: `scale(${voted === "down" ? 1.15 : takeOpacity})`,
+                  }}
+                >
+                  <span style={{ fontSize: 28 }}>{"\u{1F5D1}\uFE0F"}</span>
+                </button>
+              )}
+
+              {/* Take text — film strip frame */}
               <div
                 style={{
+                  flex: 1,
+                  opacity: takeOpacity,
+                  transform: takeOpacity === 1 ? "translateY(0) scale(1)" : "translateY(16px) scale(0.95)",
+                  transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
                   position: "relative",
-                  background: "#111",
-                  borderRadius: 6,
-                  border: "2px solid #222",
-                  padding: "20px min(48px, 8vw)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: 160,
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
                 }}
               >
-                {/* Left sprocket holes */}
+                {/* Film strip container */}
                 <div
                   style={{
-                    position: "absolute",
-                    left: 10,
-                    top: 12,
-                    bottom: 12,
+                    position: "relative",
+                    background: "#111",
+                    borderRadius: 6,
+                    border: "2px solid #222",
+                    padding: isMobile ? "16px 36px" : "20px min(48px, 8vw)",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-evenly",
-                    gap: 6,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: isMobile ? 100 : 160,
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
                   }}
                 >
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: 14,
-                        height: 10,
-                        borderRadius: 2,
-                        background: "#0a0a0a",
-                        border: "1px solid #1a1a1a",
-                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)",
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Right sprocket holes */}
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 10,
-                    top: 12,
-                    bottom: 12,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-evenly",
-                    gap: 6,
-                  }}
-                >
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: 14,
-                        height: 10,
-                        borderRadius: 2,
-                        background: "#0a0a0a",
-                        border: "1px solid #1a1a1a",
-                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)",
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Film frame lines — top and bottom */}
-                <div style={{ position: "absolute", top: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
-                <div style={{ position: "absolute", bottom: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
-
-                {/* Take content — single line, scales to fit */}
-                <div style={{ textAlign: "center", padding: "8px 0", width: "100%", overflow: "hidden" }}>
-                  <p
-                    ref={(el) => {
-                      if (!el) return;
-                      el.style.transform = "none";
-                      const parent = el.parentElement;
-                      const parentW = parent.clientWidth;
-                      const textW = el.scrollWidth;
-                      if (textW > parentW) {
-                        el.style.transform = `scaleX(${parentW / textW})`;
-                      }
-                    }}
+                  {/* Left sprocket holes */}
+                  <div
                     style={{
-                      color: "#f5f5f0",
-                      fontSize: "clamp(24px, 5vw, 40px)",
-                      fontWeight: 800,
-                      lineHeight: 1.3,
-                      margin: 0,
-                      letterSpacing: -0.5,
-                      textShadow: "0 2px 24px rgba(0,0,0,0.5)",
-                      whiteSpace: "nowrap",
-                      transformOrigin: "center center",
+                      position: "absolute",
+                      left: 10,
+                      top: 12,
+                      bottom: 12,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-evenly",
+                      gap: 6,
                     }}
                   >
-                    &ldquo;{takes[currentIndex]}&rdquo;
-                  </p>
-                </div>
+                    {Array.from({ length: isMobile ? 3 : 5 }).map((_, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 14,
+                          height: 10,
+                          borderRadius: 2,
+                          background: "#0a0a0a",
+                          border: "1px solid #1a1a1a",
+                          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)",
+                        }}
+                      />
+                    ))}
+                  </div>
 
-                {/* Verdict rating */}
-                {(() => {
-                  const { up, down } = getVote(currentIndex);
-                  const total = up + down;
-                  const ratio = total === 0 ? 0.5 : up / total;
-                  const verdicts = [
-                    { icon: "\u{1F5D1}\uFE0F", label: "TRASH", color: "#f44336" },
-                    { icon: "\u{267B}\uFE0F", label: "PRETTY BAD", color: "#ff7043" },
-                    { icon: "\u{1F610}", label: "MEH", color: "#999" },
-                    { icon: "\u{1F451}", label: "SOLID TAKE", color: "#ffb300" },
-                    { icon: "\u{1F3C6}", label: "CERTIFIED BANGER", color: "#ffd700" },
-                  ];
-                  const level = total === 0 ? -1 : ratio <= 0.2 ? 0 : ratio <= 0.4 ? 1 : ratio <= 0.6 ? 2 : ratio <= 0.8 ? 3 : 4;
-                  return (
-                    <div
+                  {/* Right sprocket holes */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: 10,
+                      top: 12,
+                      bottom: 12,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-evenly",
+                      gap: 6,
+                    }}
+                  >
+                    {Array.from({ length: isMobile ? 3 : 5 }).map((_, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 14,
+                          height: 10,
+                          borderRadius: 2,
+                          background: "#0a0a0a",
+                          border: "1px solid #1a1a1a",
+                          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)",
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Film frame lines — top and bottom */}
+                  <div style={{ position: "absolute", top: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
+                  <div style={{ position: "absolute", bottom: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
+
+                  {/* Take content — single line, scales to fit */}
+                  <div style={{ textAlign: "center", padding: "8px 0", width: "100%", overflow: "hidden" }}>
+                    <p
+                      ref={(el) => {
+                        if (!el) return;
+                        el.style.transform = "none";
+                        const parent = el.parentElement;
+                        const parentW = parent.clientWidth;
+                        const textW = el.scrollWidth;
+                        if (textW > parentW) {
+                          el.style.transform = `scaleX(${parentW / textW})`;
+                        }
+                      }}
                       style={{
-                        marginTop: 12,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: 8,
-                        minHeight: 32,
+                        color: "#f5f5f0",
+                        fontSize: isMobile ? "clamp(18px, 5vw, 28px)" : "clamp(24px, 5vw, 40px)",
+                        fontWeight: 800,
+                        lineHeight: 1.3,
+                        margin: 0,
+                        letterSpacing: -0.5,
+                        textShadow: "0 2px 24px rgba(0,0,0,0.5)",
+                        whiteSpace: "nowrap",
+                        transformOrigin: "center center",
                       }}
                     >
-                      {total > 0 ? (
-                        <>
-                          <span style={{ fontSize: 22 }}>{verdicts[level].icon}</span>
-                          <span
-                            style={{
-                              color: verdicts[level].color,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              letterSpacing: 2,
-                              fontFamily: "monospace",
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            {verdicts[level].label}
-                          </span>
+                      &ldquo;{takes[currentIndex]}&rdquo;
+                    </p>
+                  </div>
+
+                  {/* Verdict rating */}
+                  {(() => {
+                    const { up, down } = getVote(currentIndex);
+                    const total = up + down;
+                    const ratio = total === 0 ? 0.5 : up / total;
+                    const verdicts = [
+                      { icon: "\u{1F5D1}\uFE0F", label: "TRASH", color: "#f44336" },
+                      { icon: "\u{267B}\uFE0F", label: "PRETTY BAD", color: "#ff7043" },
+                      { icon: "\u{1F610}", label: "MEH", color: "#999" },
+                      { icon: "\u{1F451}", label: "SOLID TAKE", color: "#ffb300" },
+                      { icon: "\u{1F3C6}", label: "CERTIFIED BANGER", color: "#ffd700" },
+                    ];
+                    const level = total === 0 ? -1 : ratio <= 0.2 ? 0 : ratio <= 0.4 ? 1 : ratio <= 0.6 ? 2 : ratio <= 0.8 ? 3 : 4;
+                    return (
+                      <div
+                        style={{
+                          marginTop: 12,
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 8,
+                          minHeight: 32,
+                        }}
+                      >
+                        {total > 0 ? (
+                          <>
+                            <span style={{ fontSize: 22 }}>{verdicts[level].icon}</span>
+                            <span
+                              style={{
+                                color: verdicts[level].color,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                letterSpacing: 2,
+                                fontFamily: "monospace",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              {verdicts[level].label}
+                            </span>
+                            <span
+                              style={{
+                                color: "#444",
+                                fontSize: 11,
+                                fontFamily: "monospace",
+                              }}
+                            >
+                              ({total} vote{total !== 1 ? "s" : ""})
+                            </span>
+                          </>
+                        ) : (
                           <span
                             style={{
                               color: "#444",
                               fontSize: 11,
                               fontFamily: "monospace",
+                              letterSpacing: 1,
                             }}
                           >
-                            ({total} vote{total !== 1 ? "s" : ""})
+                            CAST YOUR VOTE
                           </span>
-                        </>
-                      ) : (
-                        <span
-                          style={{
-                            color: "#444",
-                            fontSize: 11,
-                            fontFamily: "monospace",
-                            letterSpacing: 1,
-                          }}
-                        >
-                          CAST YOUR VOTE
-                        </span>
-                      )}
-                    </div>
-                  );
-                })()}
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Subtle film grain overlay */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: 6,
+                    opacity: 0.04,
+                    backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+                    pointerEvents: "none",
+                  }}
+                />
               </div>
 
-              {/* Subtle film grain overlay */}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: 6,
-                  opacity: 0.04,
-                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-                  pointerEvents: "none",
-                }}
-              />
+              {/* Trophy vote button — desktop only (right side) */}
+              {!isMobile && (
+                <button
+                  onClick={() => castVote("up")}
+                  style={{
+                    background: voted === "up" ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.03)",
+                    border: voted === "up" ? "2px solid rgba(255,215,0,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                    borderRadius: "50%",
+                    width: 64,
+                    height: 64,
+                    minWidth: 64,
+                    cursor: voted ? "default" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.25s ease",
+                    opacity: takeOpacity * (voted && voted !== "up" ? 0.3 : 1),
+                    transform: `scale(${voted === "up" ? 1.15 : takeOpacity})`,
+                  }}
+                >
+                  <span style={{ fontSize: 28 }}>{"\u{1F3C6}"}</span>
+                </button>
+              )}
             </div>
 
-            {/* Trophy vote button — right side */}
-            <button
-              onClick={() => castVote("up")}
-              style={{
-                background: voted === "up" ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.03)",
-                border: voted === "up" ? "2px solid rgba(255,215,0,0.5)" : "2px solid rgba(255,255,255,0.08)",
-                borderRadius: "50%",
-                width: "min(64px, 14vw)",
-                height: "min(64px, 14vw)",
-                minWidth: "min(64px, 14vw)",
-                cursor: voted ? "default" : "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.25s ease",
-                opacity: takeOpacity * (voted && voted !== "up" ? 0.3 : 1),
-                transform: `scale(${voted === "up" ? 1.15 : takeOpacity})`,
-              }}
-            >
-              <span style={{ fontSize: "min(28px, 7vw)" }}>{"\u{1F3C6}"}</span>
-            </button>
+            {/* Mobile vote buttons — below the film strip */}
+            {isMobile && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 32,
+                  marginTop: 16,
+                  opacity: takeOpacity,
+                  transition: "opacity 0.4s ease-out",
+                }}
+              >
+                <button
+                  onClick={() => castVote("down")}
+                  style={{
+                    background: voted === "down" ? "rgba(244,67,54,0.15)" : "rgba(255,255,255,0.03)",
+                    border: voted === "down" ? "2px solid rgba(244,67,54,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                    borderRadius: "50%",
+                    width: 56,
+                    height: 56,
+                    cursor: voted ? "default" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.25s ease",
+                    opacity: voted && voted !== "down" ? 0.3 : 1,
+                    transform: `scale(${voted === "down" ? 1.15 : 1})`,
+                  }}
+                >
+                  <span style={{ fontSize: 26 }}>{"\u{1F5D1}\uFE0F"}</span>
+                </button>
+                <button
+                  onClick={() => castVote("up")}
+                  style={{
+                    background: voted === "up" ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.03)",
+                    border: voted === "up" ? "2px solid rgba(255,215,0,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                    borderRadius: "50%",
+                    width: 56,
+                    height: 56,
+                    cursor: voted ? "default" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.25s ease",
+                    opacity: voted && voted !== "up" ? 0.3 : 1,
+                    transform: `scale(${voted === "up" ? 1.15 : 1})`,
+                  }}
+                >
+                  <span style={{ fontSize: 26 }}>{"\u{1F3C6}"}</span>
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -759,35 +871,4 @@ export default function App() {
               border: copied ? "1px solid rgba(76,175,80,0.4)" : "1px solid rgba(255,255,255,0.1)",
               borderRadius: 10,
               padding: "8px 18px",
-              cursor: "pointer",
-              color: copied ? "#8f8" : "#999",
-              fontSize: 13,
-              fontFamily: "inherit",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              transition: "all 0.2s ease",
-            }}
-          >
-            <span style={{ fontSize: 16 }}>{copied ? "\u{2705}" : "\u{1F517}"}</span>
-            {copied ? "Copied!" : "Copy link"}
-          </button>
-        </div>
-      )}
-
-      {started && (
-        <p
-          style={{
-            color: "#444",
-            fontSize: 13,
-            marginTop: 20,
-            letterSpacing: 1,
-          }}
-        >
-          TAP CLAPPERBOARD OR SHAKE FOR NEXT TAKE
-        </p>
-      )}
-      </div>
-    </div>
-  );
-}
+       
