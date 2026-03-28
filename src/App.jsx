@@ -466,26 +466,27 @@ export default function App() {
       >
         {showTake && currentIndex >= 0 && (
           <>
-            {/* Upvote button — left side */}
+            {/* Trash vote button — left side */}
             <button
-              onClick={() => castVote("up")}
+              onClick={() => castVote("down")}
               style={{
-                background: voted === "up" ? "rgba(76,175,80,0.15)" : "rgba(255,255,255,0.03)",
-                border: voted === "up" ? "2px solid rgba(76,175,80,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                background: voted === "down" ? "rgba(244,67,54,0.15)" : "rgba(255,255,255,0.03)",
+                border: voted === "down" ? "2px solid rgba(244,67,54,0.5)" : "2px solid rgba(255,255,255,0.08)",
                 borderRadius: "50%",
-                width: "min(56px, 12vw)",
-                height: "min(56px, 12vw)",
-                minWidth: "min(56px, 12vw)",
+                width: "min(64px, 14vw)",
+                height: "min(64px, 14vw)",
+                minWidth: "min(64px, 14vw)",
                 cursor: voted ? "default" : "pointer",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
                 transition: "all 0.25s ease",
-                opacity: takeOpacity * (voted && voted !== "up" ? 0.3 : 1),
-                transform: `scale(${voted === "up" ? 1.2 : takeOpacity})`,
+                opacity: takeOpacity * (voted && voted !== "down" ? 0.3 : 1),
+                transform: `scale(${voted === "down" ? 1.15 : takeOpacity})`,
               }}
             >
-              <span style={{ fontSize: "min(26px, 6vw)" }}>{"\u{1F44D}"}</span>
+              <span style={{ fontSize: "min(28px, 7vw)" }}>{"\u{1F5D1}\uFE0F"}</span>
             </button>
 
             {/* Take text — film strip frame */}
@@ -507,6 +508,7 @@ export default function App() {
                   border: "2px solid #222",
                   padding: "20px min(48px, 8vw)",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   minHeight: 160,
@@ -578,7 +580,6 @@ export default function App() {
                   <p
                     ref={(el) => {
                       if (!el) return;
-                      // Reset scale to measure natural width
                       el.style.transform = "none";
                       const parent = el.parentElement;
                       const parentW = parent.clientWidth;
@@ -601,50 +602,72 @@ export default function App() {
                   >
                     &ldquo;{takes[currentIndex]}&rdquo;
                   </p>
+                </div>
 
-                  {/* Star rating */}
-                  {(() => {
-                    const { up, down } = getVote(currentIndex);
-                    const total = up + down;
-                    const rating = total === 0 ? 0 : Math.round((up / total) * 5);
-                    return (
-                      <div
-                        style={{
-                          marginTop: 14,
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        {Array.from({ length: 5 }).map((_, i) => (
+                {/* Verdict rating */}
+                {(() => {
+                  const { up, down } = getVote(currentIndex);
+                  const total = up + down;
+                  const ratio = total === 0 ? 0.5 : up / total;
+                  const verdicts = [
+                    { icon: "\u{1F5D1}\uFE0F", label: "TRASH", color: "#f44336" },
+                    { icon: "\u{267B}\uFE0F", label: "PRETTY BAD", color: "#ff7043" },
+                    { icon: "\u{1F610}", label: "MEH", color: "#999" },
+                    { icon: "\u{1F451}", label: "SOLID TAKE", color: "#ffb300" },
+                    { icon: "\u{1F3C6}", label: "CERTIFIED BANGER", color: "#ffd700" },
+                  ];
+                  const level = total === 0 ? -1 : ratio <= 0.2 ? 0 : ratio <= 0.4 ? 1 : ratio <= 0.6 ? 2 : ratio <= 0.8 ? 3 : 4;
+                  return (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 8,
+                        minHeight: 32,
+                      }}
+                    >
+                      {total > 0 ? (
+                        <>
+                          <span style={{ fontSize: 22 }}>{verdicts[level].icon}</span>
                           <span
-                            key={i}
                             style={{
-                              fontSize: 16,
-                              color: i < rating ? "#ffd700" : "#333",
-                              transition: "color 0.3s ease",
+                              color: verdicts[level].color,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              letterSpacing: 2,
+                              fontFamily: "monospace",
+                              textTransform: "uppercase",
                             }}
                           >
-                            &#9733;
+                            {verdicts[level].label}
                           </span>
-                        ))}
-                        {total > 0 && (
                           <span
                             style={{
-                              color: "#555",
+                              color: "#444",
                               fontSize: 11,
-                              marginLeft: 6,
                               fontFamily: "monospace",
                             }}
                           >
                             ({total} vote{total !== 1 ? "s" : ""})
                           </span>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
+                        </>
+                      ) : (
+                        <span
+                          style={{
+                            color: "#444",
+                            fontSize: 11,
+                            fontFamily: "monospace",
+                            letterSpacing: 1,
+                          }}
+                        >
+                          CAST YOUR VOTE
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Subtle film grain overlay */}
@@ -660,26 +683,27 @@ export default function App() {
               />
             </div>
 
-            {/* Downvote button — right side */}
+            {/* Trophy vote button — right side */}
             <button
-              onClick={() => castVote("down")}
+              onClick={() => castVote("up")}
               style={{
-                background: voted === "down" ? "rgba(244,67,54,0.15)" : "rgba(255,255,255,0.03)",
-                border: voted === "down" ? "2px solid rgba(244,67,54,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                background: voted === "up" ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.03)",
+                border: voted === "up" ? "2px solid rgba(255,215,0,0.5)" : "2px solid rgba(255,255,255,0.08)",
                 borderRadius: "50%",
-                width: "min(56px, 12vw)",
-                height: "min(56px, 12vw)",
-                minWidth: "min(56px, 12vw)",
+                width: "min(64px, 14vw)",
+                height: "min(64px, 14vw)",
+                minWidth: "min(64px, 14vw)",
                 cursor: voted ? "default" : "pointer",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
                 transition: "all 0.25s ease",
-                opacity: takeOpacity * (voted && voted !== "down" ? 0.3 : 1),
-                transform: `scale(${voted === "down" ? 1.2 : takeOpacity})`,
+                opacity: takeOpacity * (voted && voted !== "up" ? 0.3 : 1),
+                transform: `scale(${voted === "up" ? 1.15 : takeOpacity})`,
               }}
             >
-              <span style={{ fontSize: "min(26px, 6vw)" }}>{"\u{1F44E}"}</span>
+              <span style={{ fontSize: "min(28px, 7vw)" }}>{"\u{1F3C6}"}</span>
             </button>
           </>
         )}
