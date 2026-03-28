@@ -243,21 +243,22 @@ function useShake(onShake, threshold = 25) {
   }, [onShake, threshold]);
 }
 
-// Generate a URL-friendly slug from a take string
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+// Generate a short opaque hash from a take string (no spoilers)
+function hashTake(text) {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) {
+    h = ((h << 5) - h + text.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36).padStart(6, "0");
 }
 
-// Build a lookup map: slug -> index
-const slugToIndex = Object.fromEntries(takes.map((t, i) => [slugify(t), i]));
+// Build a lookup map: hash -> index
+const hashToIndex = Object.fromEntries(takes.map((t, i) => [hashTake(t), i]));
 
 // Read initial take from URL hash
 function getInitialIndex() {
   const hash = window.location.hash.slice(1);
-  if (hash && slugToIndex[hash] !== undefined) return slugToIndex[hash];
+  if (hash && hashToIndex[hash] !== undefined) return hashToIndex[hash];
   return -1;
 }
 
@@ -291,7 +292,7 @@ export default function App() {
   // Sync URL hash with current take
   useEffect(() => {
     if (currentIndex >= 0) {
-      window.location.hash = slugify(takes[currentIndex]);
+      window.location.hash = hashTake(takes[currentIndex]);
     }
   }, [currentIndex]);
 
