@@ -44,7 +44,7 @@ function Clapperboard({ isOpen, onAnimationEnd }) {
   const CLAP_TOP = 10;
 
   return (
-    <div style={{ position: "relative", width: BOARD_W, height: BOARD_H + CLAP_TOP + CLAP_H }}>
+    <div style={{ position: "relative", width: BOARD_W, height: BOARD_H + CLAP_TOP + CLAP_H, overflow: "visible", flexShrink: 0 }}>
       {/* Board body */}
       <div
         style={{
@@ -420,7 +420,14 @@ export default function App() {
       </p>
 
       <div
-        style={{ position: "relative", marginBottom: 20, cursor: "pointer" }}
+        style={{
+          position: "relative",
+          marginBottom: 20,
+          cursor: "pointer",
+          height: 268,
+          width: 340,
+          flexShrink: 0,
+        }}
         onClick={nextTake}
       >
         <Clapperboard
