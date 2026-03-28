@@ -171,11 +171,62 @@ function Clapperboard({ isOpen, onAnimationEnd }) {
   );
 }
 
-// Floating emoji particles
-function Particle({ emoji, startX }) {
+// Popcorn kernel colors (buttery palette)
+const POPCORN_COLORS = [
+  "#fff8dc", "#fffacd", "#ffefd5", "#fff5e1",
+  "#f5deb3", "#ffe4b5", "#ffffff", "#fdf5e6",
+];
+
+// Rare drop emoji pool
+const RARE_EMOJIS = ["🔥", "💀", "🤡", "💩", "😱", "🎬", "🍿", "⭐"];
+const RARE_CHANCE = 0.12;
+
+// Popcorn particle — CSS blob with random lumpy shape
+function PopcornKernel({ startX, color }) {
+  const size = useRef(8 + Math.random() * 10);
+  const br = useRef(
+    [30 + Math.random() * 40, 30 + Math.random() * 40,
+     30 + Math.random() * 40, 30 + Math.random() * 40]
+      .map((v) => v + "%").join(" ")
+  );
+  const duration = useRef(0.8 + Math.random() * 0.6);
+
   const [style, setStyle] = useState({
     position: "absolute",
-    fontSize: 24,
+    left: startX,
+    bottom: 0,
+    width: size.current,
+    height: size.current * (0.8 + Math.random() * 0.4),
+    background: color,
+    borderRadius: br.current,
+    boxShadow: "0 1px 3px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(200,170,100,0.3)",
+    opacity: 1,
+    transition: "none",
+    pointerEvents: "none",
+    zIndex: 100,
+  });
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      setStyle((s) => ({
+        ...s,
+        bottom: 150 + Math.random() * 200,
+        left: startX + (Math.random() - 0.5) * 200,
+        opacity: 0,
+        transform: `rotate(${(Math.random() - 0.5) * 360}deg) scale(${0.5 + Math.random() * 0.5})`,
+        transition: `all ${duration.current}s cubic-bezier(0.2, 0.8, 0.3, 1)`,
+      }));
+    });
+  }, [startX]);
+
+  return <div style={style} />;
+}
+
+// Emoji particle for rare drops
+function EmojiParticle({ emoji, startX }) {
+  const [style, setStyle] = useState({
+    position: "absolute",
+    fontSize: 22 + Math.random() * 10,
     left: startX,
     bottom: 0,
     opacity: 1,
@@ -188,11 +239,11 @@ function Particle({ emoji, startX }) {
     requestAnimationFrame(() => {
       setStyle((s) => ({
         ...s,
-        bottom: 200 + Math.random() * 200,
-        left: startX + (Math.random() - 0.5) * 120,
+        bottom: 180 + Math.random() * 220,
+        left: startX + (Math.random() - 0.5) * 180,
         opacity: 0,
-        transform: `rotate(${(Math.random() - 0.5) * 60}deg)`,
-        transition: "all 1.2s ease-out",
+        transform: `rotate(${(Math.random() - 0.5) * 90}deg) scale(${0.6 + Math.random() * 0.6})`,
+        transition: `all ${1 + Math.random() * 0.5}s ease-out`,
       }));
     });
   }, [startX]);
@@ -318,7 +369,7 @@ function useIsMobile(breakpoint = 600) {
   return mobile;
 }
 
-const emojis = ["\u{1F525}", "\u{1F480}", "\u{1F624}", "\u{1F921}", "\u{1F4A9}", "\u{1F644}", "\u{1F631}", "\u{1FAE0}"];
+// (theme emojis/colors are defined above as POPCORN_COLORS and RARE_EMOJIS)
 
 export default function App() {
   const isMobile = useIsMobile();
@@ -374,18 +425,38 @@ export default function App() {
   }, [isAnimating, resetVoted]));
 
   const spawnParticles = useCallback(() => {
-    const newParticles = Array.from({ length: 6 }).map(() => ({
-      id: particleId.current++,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      x: 100 + Math.random() * 140,
-    }));
+    const isRare = Math.random() < RARE_CHANCE;
+    const newParticles = [];
+
+    // Always spawn popcorn kernels
+    for (let i = 0; i < 12; i++) {
+      newParticles.push({
+        id: particleId.current++,
+        type: "popcorn",
+        color: POPCORN_COLORS[Math.floor(Math.random() * POPCORN_COLORS.length)],
+        x: 100 + Math.random() * 140,
+      });
+    }
+
+    // Rare drop: add bonus emoji burst
+    if (isRare) {
+      for (let i = 0; i < 8; i++) {
+        newParticles.push({
+          id: particleId.current++,
+          type: "emoji",
+          emoji: RARE_EMOJIS[Math.floor(Math.random() * RARE_EMOJIS.length)],
+          x: 80 + Math.random() * 180,
+        });
+      }
+    }
+
     setParticles((p) => [...p, ...newParticles]);
     setTimeout(
       () =>
         setParticles((p) =>
           p.filter((pp) => !newParticles.find((np) => np.id === pp.id))
         ),
-      1500
+      1800
     );
   }, []);
 
@@ -485,9 +556,13 @@ export default function App() {
           isOpen={isOpen}
           onAnimationEnd={handleClapperAnimationEnd}
         />
-        {particles.map((p) => (
-          <Particle key={p.id} emoji={p.emoji} startX={p.x} />
-        ))}
+        {particles.map((p) =>
+          p.type === "emoji" ? (
+            <EmojiParticle key={p.id} emoji={p.emoji} startX={p.x} />
+          ) : (
+            <PopcornKernel key={p.id} startX={p.x} color={p.color} />
+          )
+        )}
       </ClapperWrap>
 
       {/* Bottom section — min-height reserves space so layout doesn't shift */}
