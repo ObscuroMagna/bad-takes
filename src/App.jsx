@@ -439,6 +439,18 @@ export default function App() {
         ))}
       </div>
 
+      {/* Bottom section — fixed height so layout never shifts */}
+      <div
+        style={{
+          height: 320,
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          width: "100%",
+        }}
+      >
       {/* Take display: vote buttons flanking film strip */}
       <div
         style={{
@@ -751,6 +763,7 @@ export default function App() {
           TAP CLAPPERBOARD OR SHAKE FOR NEXT TAKE
         </p>
       )}
+      </div>
     </div>
   );
 }
