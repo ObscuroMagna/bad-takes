@@ -469,6 +469,48 @@ export default function App() {
                 </span>
               </button>
             </div>
+            {/* Star rating derived from vote ratio */}
+            {(() => {
+              const { up, down } = getVote(currentIndex);
+              const total = up + down;
+              const rating = total === 0 ? 0 : Math.round((up / total) * 5);
+              return (
+                <div
+                  style={{
+                    marginTop: 12,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 3,
+                  }}
+                >
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        fontSize: 14,
+                        color: i < rating ? "#ffd700" : "#333",
+                        transition: "color 0.3s ease",
+                      }}
+                    >
+                      &#9733;
+                    </span>
+                  ))}
+                  {total > 0 && (
+                    <span
+                      style={{
+                        color: "#555",
+                        fontSize: 11,
+                        marginLeft: 6,
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      ({total} vote{total !== 1 ? "s" : ""})
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
