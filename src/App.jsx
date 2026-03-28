@@ -428,10 +428,10 @@ export default function App() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: "min(24px, 3vh) 16px",
+        padding: "min(24px, 3vh) 16px 16px",
         overflow: "hidden",
         position: "relative",
       }}
@@ -450,6 +450,9 @@ export default function App() {
           pointerEvents: "none",
         }}
       />
+
+      {/* Top spacer — pushes content down to roughly center, fixed size so it never shifts */}
+      <div style={{ flexShrink: 0, height: isMobile ? "8vh" : "12vh" }} />
 
       <h1
         style={{
@@ -633,10 +636,10 @@ export default function App() {
                   <div style={{ position: "absolute", top: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
                   <div style={{ position: "absolute", bottom: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
 
-                  {/* Take content — single line, scales to fit */}
+                  {/* Take content — scales to fit on desktop, wraps on mobile */}
                   <div style={{ textAlign: "center", padding: "8px 0", width: "100%", overflow: "hidden" }}>
                     <p
-                      ref={(el) => {
+                      ref={isMobile ? undefined : (el) => {
                         if (!el) return;
                         el.style.transform = "none";
                         const parent = el.parentElement;
@@ -648,13 +651,13 @@ export default function App() {
                       }}
                       style={{
                         color: "#f5f5f0",
-                        fontSize: isMobile ? "clamp(18px, 5vw, 28px)" : "clamp(24px, 5vw, 40px)",
+                        fontSize: isMobile ? "clamp(16px, 4.5vw, 24px)" : "clamp(24px, 5vw, 40px)",
                         fontWeight: 800,
                         lineHeight: 1.3,
                         margin: 0,
                         letterSpacing: -0.5,
                         textShadow: "0 2px 24px rgba(0,0,0,0.5)",
-                        whiteSpace: "nowrap",
+                        whiteSpace: isMobile ? "normal" : "nowrap",
                         transformOrigin: "center center",
                       }}
                     >
