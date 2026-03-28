@@ -871,4 +871,36 @@ export default function App() {
               border: copied ? "1px solid rgba(76,175,80,0.4)" : "1px solid rgba(255,255,255,0.1)",
               borderRadius: 10,
               padding: "8px 18px",
+              cursor: "pointer",
+              color: copied ? "#8f8" : "#999",
+              fontSize: 13,
+              fontFamily: "inherit",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              transition: "all 0.2s ease",
+            }}
+          >
+            <span style={{ fontSize: 16 }}>{copied ? "\u{2705}" : "\u{1F517}"}</span>
+            {copied ? "Copied!" : "Copy link"}
+          </button>
+        </div>
+      )}
+
+      {started && (
+        <p
+          style={{
+            color: "#444",
+            fontSize: 13,
+            marginTop: 20,
+            letterSpacing: 1,
+          }}
+        >
+          TAP CLAPPERBOARD OR SHAKE FOR NEXT TAKE
+        </p>
+      )}
+      </div>
+    </div>
+  );
+}
        
