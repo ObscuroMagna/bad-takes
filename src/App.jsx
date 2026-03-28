@@ -370,10 +370,10 @@ export default function App() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: 24,
+        padding: "min(6vh, 40px) 24px 24px",
         overflow: "hidden",
         position: "relative",
       }}
@@ -411,7 +411,7 @@ export default function App() {
           fontSize: 14,
           letterSpacing: 4,
           textTransform: "uppercase",
-          marginBottom: 48,
+          marginBottom: 16,
         }}
       >
         {started
@@ -420,7 +420,7 @@ export default function App() {
       </p>
 
       <div
-        style={{ position: "relative", marginBottom: 48, cursor: "pointer" }}
+        style={{ position: "relative", marginBottom: 24, cursor: "pointer" }}
         onClick={nextTake}
       >
         <Clapperboard
@@ -435,14 +435,15 @@ export default function App() {
       {/* Take display: vote buttons flanking film strip */}
       <div
         style={{
-          minHeight: 140,
-          maxWidth: 700,
+          minHeight: 220,
+          maxWidth: 800,
           width: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: "min(24px, 3vw)",
           padding: "0 8px",
+          flex: 1,
         }}
       >
         {showTake && currentIndex >= 0 && (
@@ -490,7 +491,7 @@ export default function App() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  minHeight: 120,
+                  minHeight: 160,
                   boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
                 }}
               >
@@ -559,7 +560,7 @@ export default function App() {
                   <p
                     style={{
                       color: "#f5f5f0",
-                      fontSize: "clamp(18px, 5vw, 28px)",
+                      fontSize: "clamp(22px, 6vw, 36px)",
                       fontWeight: 800,
                       lineHeight: 1.3,
                       margin: 0,
