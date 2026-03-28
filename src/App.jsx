@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import takes from "./takes";
+import useVotes from "./useVotes";
 
 // Shared stripe elements for both clapper bars.
 // yOffset shifts the stripe origin so skewX alignment is continuous across bars.
@@ -251,6 +252,7 @@ export default function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [particles, setParticles] = useState([]);
   const [takeOpacity, setTakeOpacity] = useState(0);
+  const { getVote, voted, castVote, resetVoted } = useVotes(takes.length, currentIndex);
   const particleId = useRef(0);
 
   // Trigger next take on phone shake
@@ -259,13 +261,14 @@ export default function App() {
       setIsAnimating(true);
       setShowTake(false);
       setTakeOpacity(0);
+      resetVoted();
       setIsOpen(true);
       setTimeout(() => {
         setIsOpen(false);
         setCurrentIndex((i) => (i + 1) % takes.length);
       }, 300);
     }
-  }, [isAnimating]));
+  }, [isAnimating, resetVoted]));
 
   const spawnParticles = useCallback(() => {
     const newParticles = Array.from({ length: 6 }).map(() => ({
@@ -288,6 +291,7 @@ export default function App() {
     setIsAnimating(true);
     setShowTake(false);
     setTakeOpacity(0);
+    resetVoted();
 
     setIsOpen(true);
 
@@ -415,23 +419,55 @@ export default function App() {
             </p>
             <div
               style={{
-                marginTop: 12,
+                marginTop: 16,
                 display: "flex",
                 justifyContent: "center",
-                gap: 4,
+                alignItems: "center",
+                gap: 20,
               }}
             >
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    fontSize: 10,
-                    color: i < 1 + Math.floor(Math.random() * 2) ? "#ffd700" : "#333",
-                  }}
-                >
-                  &#9733;
+              <button
+                onClick={() => castVote("up")}
+                style={{
+                  background: voted === "up" ? "rgba(76,175,80,0.2)" : "rgba(255,255,255,0.05)",
+                  border: voted === "up" ? "1px solid rgba(76,175,80,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 12,
+                  padding: "8px 16px",
+                  cursor: voted ? "default" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  transition: "all 0.2s ease",
+                  opacity: voted && voted !== "up" ? 0.4 : 1,
+                  transform: voted === "up" ? "scale(1.1)" : "scale(1)",
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{"\u{1F44D}"}</span>
+                <span style={{ color: "#f5f5f0", fontSize: 14, fontWeight: 600 }}>
+                  {getVote(currentIndex).up}
                 </span>
-              ))}
+              </button>
+              <button
+                onClick={() => castVote("down")}
+                style={{
+                  background: voted === "down" ? "rgba(244,67,54,0.2)" : "rgba(255,255,255,0.05)",
+                  border: voted === "down" ? "1px solid rgba(244,67,54,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 12,
+                  padding: "8px 16px",
+                  cursor: voted ? "default" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  transition: "all 0.2s ease",
+                  opacity: voted && voted !== "down" ? 0.4 : 1,
+                  transform: voted === "down" ? "scale(1.1)" : "scale(1)",
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{"\u{1F44E}"}</span>
+                <span style={{ color: "#f5f5f0", fontSize: 14, fontWeight: 600 }}>
+                  {getVote(currentIndex).down}
+                </span>
+              </button>
             </div>
           </div>
         )}
