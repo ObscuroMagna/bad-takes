@@ -443,9 +443,6 @@ export default function App() {
                 }}
               >
                 <span style={{ fontSize: 20 }}>{"\u{1F44D}"}</span>
-                <span style={{ color: "#f5f5f0", fontSize: 14, fontWeight: 600 }}>
-                  {getVote(currentIndex).up}
-                </span>
               </button>
               <button
                 onClick={() => castVote("down")}
@@ -464,9 +461,6 @@ export default function App() {
                 }}
               >
                 <span style={{ fontSize: 20 }}>{"\u{1F44E}"}</span>
-                <span style={{ color: "#f5f5f0", fontSize: 14, fontWeight: 600 }}>
-                  {getVote(currentIndex).down}
-                </span>
               </button>
             </div>
             {/* Star rating derived from vote ratio */}
