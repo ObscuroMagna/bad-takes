@@ -370,10 +370,10 @@ export default function App() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "center",
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: "min(6vh, 40px) 24px 24px",
+        padding: 24,
         overflow: "hidden",
         position: "relative",
       }}
@@ -399,7 +399,7 @@ export default function App() {
           fontSize: "clamp(32px, 8vw, 48px)",
           fontWeight: 900,
           letterSpacing: -1,
-          marginBottom: 8,
+          marginBottom: 4,
           textShadow: "0 2px 20px rgba(255,200,50,0.2)",
         }}
       >
@@ -411,7 +411,7 @@ export default function App() {
           fontSize: 14,
           letterSpacing: 4,
           textTransform: "uppercase",
-          marginBottom: 16,
+          marginBottom: 12,
         }}
       >
         {started
@@ -420,7 +420,7 @@ export default function App() {
       </p>
 
       <div
-        style={{ position: "relative", marginBottom: 24, cursor: "pointer" }}
+        style={{ position: "relative", marginBottom: 20, cursor: "pointer" }}
         onClick={nextTake}
       >
         <Clapperboard
@@ -435,7 +435,7 @@ export default function App() {
       {/* Take display: vote buttons flanking film strip */}
       <div
         style={{
-          minHeight: 220,
+          minHeight: 180,
           maxWidth: 800,
           width: "100%",
           display: "flex",
@@ -443,7 +443,6 @@ export default function App() {
           justifyContent: "center",
           gap: "min(24px, 3vw)",
           padding: "0 8px",
-          flex: 1,
         }}
       >
         {showTake && currentIndex >= 0 && (
@@ -555,17 +554,30 @@ export default function App() {
                 <div style={{ position: "absolute", top: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
                 <div style={{ position: "absolute", bottom: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
 
-                {/* Take content */}
-                <div style={{ textAlign: "center", padding: "8px 0" }}>
+                {/* Take content — single line, scales to fit */}
+                <div style={{ textAlign: "center", padding: "8px 0", width: "100%", overflow: "hidden" }}>
                   <p
+                    ref={(el) => {
+                      if (!el) return;
+                      // Reset scale to measure natural width
+                      el.style.transform = "none";
+                      const parent = el.parentElement;
+                      const parentW = parent.clientWidth;
+                      const textW = el.scrollWidth;
+                      if (textW > parentW) {
+                        el.style.transform = `scaleX(${parentW / textW})`;
+                      }
+                    }}
                     style={{
                       color: "#f5f5f0",
-                      fontSize: "clamp(22px, 6vw, 36px)",
+                      fontSize: "clamp(24px, 5vw, 40px)",
                       fontWeight: 800,
                       lineHeight: 1.3,
                       margin: 0,
                       letterSpacing: -0.5,
                       textShadow: "0 2px 24px rgba(0,0,0,0.5)",
+                      whiteSpace: "nowrap",
+                      transformOrigin: "center center",
                     }}
                   >
                     &ldquo;{takes[currentIndex]}&rdquo;
