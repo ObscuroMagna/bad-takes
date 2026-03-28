@@ -243,17 +243,57 @@ function useShake(onShake, threshold = 25) {
   }, [onShake, threshold]);
 }
 
+// Generate a URL-friendly slug from a take string
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// Build a lookup map: slug -> index
+const slugToIndex = Object.fromEntries(takes.map((t, i) => [slugify(t), i]));
+
+// Read initial take from URL hash
+function getInitialIndex() {
+  const hash = window.location.hash.slice(1);
+  if (hash && slugToIndex[hash] !== undefined) return slugToIndex[hash];
+  return -1;
+}
+
 const emojis = ["\u{1F525}", "\u{1F480}", "\u{1F624}", "\u{1F921}", "\u{1F4A9}", "\u{1F644}", "\u{1F631}", "\u{1FAE0}"];
 
 export default function App() {
-  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [initialFromUrl] = useState(getInitialIndex() >= 0);
+  const [currentIndex, setCurrentIndex] = useState(getInitialIndex);
   const [isOpen, setIsOpen] = useState(false);
-  const [showTake, setShowTake] = useState(false);
+  const [showTake, setShowTake] = useState(initialFromUrl);
   const [isAnimating, setIsAnimating] = useState(false);
   const [particles, setParticles] = useState([]);
-  const [takeOpacity, setTakeOpacity] = useState(0);
+  const [takeOpacity, setTakeOpacity] = useState(initialFromUrl ? 1 : 0);
   const { getVote, voted, castVote, resetVoted } = useVotes(takes.length, currentIndex);
   const particleId = useRef(0);
+  const clapSound = useRef(null);
+
+  // Preload clap sound once
+  useEffect(() => {
+    clapSound.current = new Audio("/clap.mp3");
+    clapSound.current.preload = "auto";
+  }, []);
+
+  const playClap = useCallback(() => {
+    if (clapSound.current) {
+      clapSound.current.currentTime = 0;
+      clapSound.current.play().catch(() => {});
+    }
+  }, []);
+
+  // Sync URL hash with current take
+  useEffect(() => {
+    if (currentIndex >= 0) {
+      window.location.hash = slugify(takes[currentIndex]);
+    }
+  }, [currentIndex]);
 
   // Trigger next take on phone shake
   useShake(useCallback(() => {
@@ -265,7 +305,11 @@ export default function App() {
       setIsOpen(true);
       setTimeout(() => {
         setIsOpen(false);
-        setCurrentIndex((i) => (i + 1) % takes.length);
+        setCurrentIndex((prev) => {
+          let next;
+          do { next = Math.floor(Math.random() * takes.length); } while (next === prev && takes.length > 1);
+          return next;
+        });
       }, 300);
     }
   }, [isAnimating, resetVoted]));
@@ -297,18 +341,23 @@ export default function App() {
 
     setTimeout(() => {
       setIsOpen(false);
-      setCurrentIndex((i) => (i + 1) % takes.length);
+      setCurrentIndex((prev) => {
+        let next;
+        do { next = Math.floor(Math.random() * takes.length); } while (next === prev && takes.length > 1);
+        return next;
+      });
     }, 300);
   }, [isAnimating]);
 
   const handleClapperAnimationEnd = useCallback(() => {
     if (!isOpen && currentIndex >= 0) {
+      playClap();
       setShowTake(true);
       spawnParticles();
       setTimeout(() => setTakeOpacity(1), 50);
       setTimeout(() => setIsAnimating(false), 200);
     }
-  }, [isOpen, currentIndex, spawnParticles]);
+  }, [isOpen, currentIndex, spawnParticles, playClap]);
 
   const started = currentIndex >= 0;
 
@@ -365,7 +414,7 @@ export default function App() {
         }}
       >
         {started
-          ? `Take ${currentIndex + 1} of ${takes.length}`
+          ? "Another hot take from the internet"
           : "Click the clapperboard to start"}
       </p>
 
