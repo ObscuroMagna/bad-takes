@@ -395,7 +395,7 @@ export default function App() {
       <h1
         style={{
           color: "#f5f5f0",
-          fontSize: 48,
+          fontSize: "clamp(32px, 8vw, 48px)",
           fontWeight: 900,
           letterSpacing: -1,
           marginBottom: 8,
@@ -440,7 +440,8 @@ export default function App() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 24,
+          gap: "min(24px, 3vw)",
+          padding: "0 8px",
         }}
       >
         {showTake && currentIndex >= 0 && (
@@ -452,9 +453,9 @@ export default function App() {
                 background: voted === "up" ? "rgba(76,175,80,0.15)" : "rgba(255,255,255,0.03)",
                 border: voted === "up" ? "2px solid rgba(76,175,80,0.5)" : "2px solid rgba(255,255,255,0.08)",
                 borderRadius: "50%",
-                width: 56,
-                height: 56,
-                minWidth: 56,
+                width: "min(56px, 12vw)",
+                height: "min(56px, 12vw)",
+                minWidth: "min(56px, 12vw)",
                 cursor: voted ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -464,75 +465,166 @@ export default function App() {
                 transform: `scale(${voted === "up" ? 1.2 : takeOpacity})`,
               }}
             >
-              <span style={{ fontSize: 26 }}>{"\u{1F44D}"}</span>
+              <span style={{ fontSize: "min(26px, 6vw)" }}>{"\u{1F44D}"}</span>
             </button>
 
-            {/* Take text — center */}
+            {/* Take text — film strip frame */}
             <div
               style={{
                 flex: 1,
-                textAlign: "center",
                 opacity: takeOpacity,
                 transform: takeOpacity === 1 ? "translateY(0) scale(1)" : "translateY(16px) scale(0.95)",
                 transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+                position: "relative",
               }}
             >
-              <p
+              {/* Film strip container */}
+              <div
                 style={{
-                  color: "#f5f5f0",
-                  fontSize: 32,
-                  fontWeight: 800,
-                  lineHeight: 1.25,
-                  margin: 0,
-                  letterSpacing: -0.5,
-                  textShadow: "0 2px 24px rgba(0,0,0,0.5)",
+                  position: "relative",
+                  background: "#111",
+                  borderRadius: 6,
+                  border: "2px solid #222",
+                  padding: "20px min(48px, 8vw)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 120,
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
                 }}
               >
-                &ldquo;{takes[currentIndex]}&rdquo;
-              </p>
+                {/* Left sprocket holes */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 10,
+                    top: 12,
+                    bottom: 12,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-evenly",
+                    gap: 6,
+                  }}
+                >
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 14,
+                        height: 10,
+                        borderRadius: 2,
+                        background: "#0a0a0a",
+                        border: "1px solid #1a1a1a",
+                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)",
+                      }}
+                    />
+                  ))}
+                </div>
 
-              {/* Star rating */}
-              {(() => {
-                const { up, down } = getVote(currentIndex);
-                const total = up + down;
-                const rating = total === 0 ? 0 : Math.round((up / total) * 5);
-                return (
-                  <div
+                {/* Right sprocket holes */}
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: 12,
+                    bottom: 12,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-evenly",
+                    gap: 6,
+                  }}
+                >
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 14,
+                        height: 10,
+                        borderRadius: 2,
+                        background: "#0a0a0a",
+                        border: "1px solid #1a1a1a",
+                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)",
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Film frame lines — top and bottom */}
+                <div style={{ position: "absolute", top: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
+                <div style={{ position: "absolute", bottom: 6, left: 28, right: 28, height: 1, background: "#2a2a2a" }} />
+
+                {/* Take content */}
+                <div style={{ textAlign: "center", padding: "8px 0" }}>
+                  <p
                     style={{
-                      marginTop: 14,
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 4,
+                      color: "#f5f5f0",
+                      fontSize: "clamp(18px, 5vw, 28px)",
+                      fontWeight: 800,
+                      lineHeight: 1.3,
+                      margin: 0,
+                      letterSpacing: -0.5,
+                      textShadow: "0 2px 24px rgba(0,0,0,0.5)",
                     }}
                   >
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span
-                        key={i}
+                    &ldquo;{takes[currentIndex]}&rdquo;
+                  </p>
+
+                  {/* Star rating */}
+                  {(() => {
+                    const { up, down } = getVote(currentIndex);
+                    const total = up + down;
+                    const rating = total === 0 ? 0 : Math.round((up / total) * 5);
+                    return (
+                      <div
                         style={{
-                          fontSize: 16,
-                          color: i < rating ? "#ffd700" : "#333",
-                          transition: "color 0.3s ease",
+                          marginTop: 14,
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 4,
                         }}
                       >
-                        &#9733;
-                      </span>
-                    ))}
-                    {total > 0 && (
-                      <span
-                        style={{
-                          color: "#555",
-                          fontSize: 11,
-                          marginLeft: 6,
-                          fontFamily: "monospace",
-                        }}
-                      >
-                        ({total} vote{total !== 1 ? "s" : ""})
-                      </span>
-                    )}
-                  </div>
-                );
-              })()}
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              fontSize: 16,
+                              color: i < rating ? "#ffd700" : "#333",
+                              transition: "color 0.3s ease",
+                            }}
+                          >
+                            &#9733;
+                          </span>
+                        ))}
+                        {total > 0 && (
+                          <span
+                            style={{
+                              color: "#555",
+                              fontSize: 11,
+                              marginLeft: 6,
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            ({total} vote{total !== 1 ? "s" : ""})
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Subtle film grain overlay */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 6,
+                  opacity: 0.04,
+                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+                  pointerEvents: "none",
+                }}
+              />
             </div>
 
             {/* Downvote button — right side */}
@@ -542,9 +634,9 @@ export default function App() {
                 background: voted === "down" ? "rgba(244,67,54,0.15)" : "rgba(255,255,255,0.03)",
                 border: voted === "down" ? "2px solid rgba(244,67,54,0.5)" : "2px solid rgba(255,255,255,0.08)",
                 borderRadius: "50%",
-                width: 56,
-                height: 56,
-                minWidth: 56,
+                width: "min(56px, 12vw)",
+                height: "min(56px, 12vw)",
+                minWidth: "min(56px, 12vw)",
                 cursor: voted ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -554,7 +646,7 @@ export default function App() {
                 transform: `scale(${voted === "down" ? 1.2 : takeOpacity})`,
               }}
             >
-              <span style={{ fontSize: 26 }}>{"\u{1F44E}"}</span>
+              <span style={{ fontSize: "min(26px, 6vw)" }}>{"\u{1F44E}"}</span>
             </button>
           </>
         )}
