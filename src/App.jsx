@@ -199,6 +199,49 @@ function Particle({ emoji, startX }) {
   return <div style={style}>{emoji}</div>;
 }
 
+// Detect phone shake via DeviceMotion API
+function useShake(onShake, threshold = 25) {
+  const lastShake = useRef(0);
+
+  useEffect(() => {
+    function handleMotion(e) {
+      const { x, y, z } = e.accelerationIncludingGravity || {};
+      if (x == null) return;
+
+      const force = Math.sqrt(x * x + y * y + z * z);
+      const now = Date.now();
+
+      if (force > threshold && now - lastShake.current > 800) {
+        lastShake.current = now;
+        onShake();
+      }
+    }
+
+    // iOS 13+ requires permission request
+    if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+      // Permission will be requested on first tap (must be user-initiated)
+      function requestOnTap() {
+        DeviceMotionEvent.requestPermission()
+          .then((state) => {
+            if (state === "granted") {
+              window.addEventListener("devicemotion", handleMotion);
+            }
+          })
+          .catch(() => {});
+        window.removeEventListener("click", requestOnTap);
+      }
+      window.addEventListener("click", requestOnTap);
+      return () => {
+        window.removeEventListener("click", requestOnTap);
+        window.removeEventListener("devicemotion", handleMotion);
+      };
+    }
+
+    window.addEventListener("devicemotion", handleMotion);
+    return () => window.removeEventListener("devicemotion", handleMotion);
+  }, [onShake, threshold]);
+}
+
 const emojis = ["\u{1F525}", "\u{1F480}", "\u{1F624}", "\u{1F921}", "\u{1F4A9}", "\u{1F644}", "\u{1F631}", "\u{1FAE0}"];
 
 export default function App() {
@@ -209,6 +252,20 @@ export default function App() {
   const [particles, setParticles] = useState([]);
   const [takeOpacity, setTakeOpacity] = useState(0);
   const particleId = useRef(0);
+
+  // Trigger next take on phone shake
+  useShake(useCallback(() => {
+    if (!isAnimating) {
+      setIsAnimating(true);
+      setShowTake(false);
+      setTakeOpacity(0);
+      setIsOpen(true);
+      setTimeout(() => {
+        setIsOpen(false);
+        setCurrentIndex((i) => (i + 1) % takes.length);
+      }, 300);
+    }
+  }, [isAnimating]));
 
   const spawnParticles = useCallback(() => {
     const newParticles = Array.from({ length: 6 }).map(() => ({
@@ -389,7 +446,7 @@ export default function App() {
             letterSpacing: 1,
           }}
         >
-          CLICK CLAPPERBOARD FOR NEXT TAKE
+          TAP CLAPPERBOARD OR SHAKE FOR NEXT TAKE
         </p>
       )}
     </div>
