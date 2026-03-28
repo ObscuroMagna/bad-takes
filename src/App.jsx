@@ -431,130 +431,132 @@ export default function App() {
         ))}
       </div>
 
+      {/* Take display: vote buttons flanking big cinematic text */}
       <div
         style={{
-          minHeight: 120,
-          maxWidth: 500,
+          minHeight: 140,
+          maxWidth: 700,
           width: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          textAlign: "center",
+          gap: 24,
         }}
       >
         {showTake && currentIndex >= 0 && (
-          <div
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 16,
-              padding: "28px 36px",
-              backdropFilter: "blur(10px)",
-              opacity: takeOpacity,
-              transform: takeOpacity === 1 ? "translateY(0)" : "translateY(10px)",
-              transition: "opacity 0.4s ease-out, transform 0.4s ease-out",
-            }}
-          >
-            <p
+          <>
+            {/* Upvote button — left side */}
+            <button
+              onClick={() => castVote("up")}
               style={{
-                color: "#f5f5f0",
-                fontSize: 22,
-                fontWeight: 600,
-                lineHeight: 1.4,
-                margin: 0,
+                background: voted === "up" ? "rgba(76,175,80,0.15)" : "rgba(255,255,255,0.03)",
+                border: voted === "up" ? "2px solid rgba(76,175,80,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                borderRadius: "50%",
+                width: 56,
+                height: 56,
+                minWidth: 56,
+                cursor: voted ? "default" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.25s ease",
+                opacity: takeOpacity * (voted && voted !== "up" ? 0.3 : 1),
+                transform: `scale(${voted === "up" ? 1.2 : takeOpacity})`,
               }}
             >
-              &ldquo;{takes[currentIndex]}&rdquo;
-            </p>
+              <span style={{ fontSize: 26 }}>{"\u{1F44D}"}</span>
+            </button>
+
+            {/* Take text — center */}
             <div
               style={{
-                marginTop: 16,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 20,
+                flex: 1,
+                textAlign: "center",
+                opacity: takeOpacity,
+                transform: takeOpacity === 1 ? "translateY(0) scale(1)" : "translateY(16px) scale(0.95)",
+                transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
               }}
             >
-              <button
-                onClick={() => castVote("up")}
+              <p
                 style={{
-                  background: voted === "up" ? "rgba(76,175,80,0.2)" : "rgba(255,255,255,0.05)",
-                  border: voted === "up" ? "1px solid rgba(76,175,80,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 12,
-                  padding: "8px 16px",
-                  cursor: voted ? "default" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  transition: "all 0.2s ease",
-                  opacity: voted && voted !== "up" ? 0.4 : 1,
-                  transform: voted === "up" ? "scale(1.1)" : "scale(1)",
+                  color: "#f5f5f0",
+                  fontSize: 32,
+                  fontWeight: 800,
+                  lineHeight: 1.25,
+                  margin: 0,
+                  letterSpacing: -0.5,
+                  textShadow: "0 2px 24px rgba(0,0,0,0.5)",
                 }}
               >
-                <span style={{ fontSize: 20 }}>{"\u{1F44D}"}</span>
-              </button>
-              <button
-                onClick={() => castVote("down")}
-                style={{
-                  background: voted === "down" ? "rgba(244,67,54,0.2)" : "rgba(255,255,255,0.05)",
-                  border: voted === "down" ? "1px solid rgba(244,67,54,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 12,
-                  padding: "8px 16px",
-                  cursor: voted ? "default" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  transition: "all 0.2s ease",
-                  opacity: voted && voted !== "down" ? 0.4 : 1,
-                  transform: voted === "down" ? "scale(1.1)" : "scale(1)",
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{"\u{1F44E}"}</span>
-              </button>
+                &ldquo;{takes[currentIndex]}&rdquo;
+              </p>
+
+              {/* Star rating */}
+              {(() => {
+                const { up, down } = getVote(currentIndex);
+                const total = up + down;
+                const rating = total === 0 ? 0 : Math.round((up / total) * 5);
+                return (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: 16,
+                          color: i < rating ? "#ffd700" : "#333",
+                          transition: "color 0.3s ease",
+                        }}
+                      >
+                        &#9733;
+                      </span>
+                    ))}
+                    {total > 0 && (
+                      <span
+                        style={{
+                          color: "#555",
+                          fontSize: 11,
+                          marginLeft: 6,
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        ({total} vote{total !== 1 ? "s" : ""})
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
-            {/* Star rating derived from vote ratio */}
-            {(() => {
-              const { up, down } = getVote(currentIndex);
-              const total = up + down;
-              const rating = total === 0 ? 0 : Math.round((up / total) * 5);
-              return (
-                <div
-                  style={{
-                    marginTop: 12,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 3,
-                  }}
-                >
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        fontSize: 14,
-                        color: i < rating ? "#ffd700" : "#333",
-                        transition: "color 0.3s ease",
-                      }}
-                    >
-                      &#9733;
-                    </span>
-                  ))}
-                  {total > 0 && (
-                    <span
-                      style={{
-                        color: "#555",
-                        fontSize: 11,
-                        marginLeft: 6,
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      ({total} vote{total !== 1 ? "s" : ""})
-                    </span>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
+
+            {/* Downvote button — right side */}
+            <button
+              onClick={() => castVote("down")}
+              style={{
+                background: voted === "down" ? "rgba(244,67,54,0.15)" : "rgba(255,255,255,0.03)",
+                border: voted === "down" ? "2px solid rgba(244,67,54,0.5)" : "2px solid rgba(255,255,255,0.08)",
+                borderRadius: "50%",
+                width: 56,
+                height: 56,
+                minWidth: 56,
+                cursor: voted ? "default" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.25s ease",
+                opacity: takeOpacity * (voted && voted !== "down" ? 0.3 : 1),
+                transform: `scale(${voted === "down" ? 1.2 : takeOpacity})`,
+              }}
+            >
+              <span style={{ fontSize: 26 }}>{"\u{1F44E}"}</span>
+            </button>
+          </>
         )}
       </div>
 
