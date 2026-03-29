@@ -360,15 +360,17 @@ Create `src/themes.js` exporting all theme configs and a `getActiveTheme()` func
 ### How components consume themes
 Pass the active theme as a prop or via React context. Components that need theme data (particles, verdicts, vote buttons) read from the theme object instead of hardcoded values.
 
+### Clapperboard chevron colors
+The clapperboard stripes form chevrons (top bar skews right, bottom bar skews left). Themes could override the stripe colors to match the theme palette. Add to the theme config:
+
+```js
+clapperboard: {
+  stripeLight: "#f5f5f0",  // default light stripe
+  stripeDark: "#1a1a1a",   // default dark stripe
+  boardColor: "#1a1a1a",   // board body
+  borderColor: "#333",     // board border
+},
+```
+
 ### Adding a new theme
 1. Define the config object following the structure above
-2. Add it to the themes map in `src/themes.js`
-3. Add activation dates to the schedule (if date-based)
-4. That's it — no component changes needed
-
-### Future considerations
-- Background gradient overrides per theme
-- Custom clapperboard colors per theme
-- Theme-specific clap sounds
-- User theme preferences saved in localStorage
-- Theme preview/selection UI

@@ -400,6 +400,26 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const particleId = useRef(0);
   const clapSound = useRef(null);
+  const shuffleQueue = useRef([]);
+
+  // Draw the next index from a shuffled queue; reshuffle when exhausted
+  const drawNext = useCallback((excludeIndex) => {
+    if (shuffleQueue.current.length === 0) {
+      // Build a fresh shuffled list of all indices
+      const indices = Array.from({ length: takes.length }, (_, i) => i);
+      // Fisher-Yates shuffle
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      // If the first in the new queue matches what we just showed, move it to the end
+      if (indices[0] === excludeIndex && indices.length > 1) {
+        indices.push(indices.shift());
+      }
+      shuffleQueue.current = indices;
+    }
+    return shuffleQueue.current.shift();
+  }, [takes.length]);
 
   // Preload clap sound once
   useEffect(() => {
@@ -431,14 +451,10 @@ export default function App() {
       setIsOpen(true);
       setTimeout(() => {
         setIsOpen(false);
-        setCurrentIndex((prev) => {
-          let next;
-          do { next = Math.floor(Math.random() * takes.length); } while (next === prev && takes.length > 1);
-          return next;
-        });
+        setCurrentIndex((prev) => drawNext(prev));
       }, 300);
     }
-  }, [isAnimating, resetVoted]));
+  }, [isAnimating, resetVoted, drawNext]));
 
   const spawnParticles = useCallback(() => {
     const isRare = Math.random() < RARE_CHANCE;
@@ -487,13 +503,9 @@ export default function App() {
 
     setTimeout(() => {
       setIsOpen(false);
-      setCurrentIndex((prev) => {
-        let next;
-        do { next = Math.floor(Math.random() * takes.length); } while (next === prev && takes.length > 1);
-        return next;
-      });
+      setCurrentIndex((prev) => drawNext(prev));
     }, 300);
-  }, [isAnimating]);
+  }, [isAnimating, drawNext]);
 
   const handleClapperAnimationEnd = useCallback(() => {
     if (!isOpen && currentIndex >= 0) {
