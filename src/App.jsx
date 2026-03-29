@@ -4,7 +4,7 @@ import useTakes from "./useTakes";
 
 // Shared stripe elements for both clapper bars.
 // yOffset shifts the stripe origin so skewX alignment is continuous across bars.
-function ClapperStripes({ invert, yOffset = 0 }) {
+function ClapperStripes({ invert, yOffset = 0, skew = -20 }) {
   const STRIPE_W = 36;
   const count = 14;
   return (
@@ -28,7 +28,7 @@ function ClapperStripes({ invert, yOffset = 0 }) {
             bottom: -20,
             background:
               (invert ? i % 2 !== 0 : i % 2 === 0) ? "#1a1a1a" : "#f5f5f0",
-            transform: "skewX(-20deg)",
+            transform: `skewX(${skew}deg)`,
           }}
         />
       ))}
@@ -150,7 +150,7 @@ function Clapperboard({ isOpen, onAnimationEnd }) {
             : "0 2px 8px rgba(0,0,0,0.3)",
         }}
       >
-        <ClapperStripes invert={false} />
+        <ClapperStripes invert={false} skew={20} />
       </div>
 
       {/* Bottom clapper bar (static, sits at top of board) */}
