@@ -4,3 +4,8 @@ dist
 *.local
 .env
 .env.local
+.auth-token.json
+firebase-migration.json
+votes-migration.json
+migrate-votes.ps1
+bad-takes-migrated.json

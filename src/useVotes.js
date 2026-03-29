@@ -2,9 +2,28 @@ import { useState, useEffect, useCallback } from "react";
 import { db } from "./firebase";
 import { ref, onValue, runTransaction } from "firebase/database";
 
+const STORAGE_KEY = "badtakes_votes";
+
+/** Read the voted-hashes map from localStorage */
+function getStoredVotes() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+/** Save a vote for a hash to localStorage */
+function storeVote(hash, direction) {
+  const stored = getStoredVotes();
+  stored[hash] = direction;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+}
+
 /**
  * Real-time vote hook backed by Firebase Realtime Database.
  * Votes are keyed by take hash (not index) so they survive reordering.
+ * localStorage remembers which takes this visitor already voted on.
  *
  * Returns { votes, getVote, voted, castVote, resetVoted }
  *   votes   – object keyed by take hash, e.g. { "1ta3tzf": { up: 9 }, ... }
@@ -16,6 +35,16 @@ import { ref, onValue, runTransaction } from "firebase/database";
 export default function useVotes(activeHash) {
   const [votes, setVotes] = useState({});
   const [voted, setVoted] = useState(null);
+
+  // When activeHash changes, check if this visitor already voted
+  useEffect(() => {
+    if (!activeHash) {
+      setVoted(null);
+      return;
+    }
+    const stored = getStoredVotes();
+    setVoted(stored[activeHash] || null);
+  }, [activeHash]);
 
   // Subscribe to real-time vote updates
   useEffect(() => {
@@ -31,6 +60,7 @@ export default function useVotes(activeHash) {
     (direction) => {
       if (voted || !activeHash) return;
       setVoted(direction);
+      storeVote(activeHash, direction);
 
       const voteRef = ref(db, `votes/${activeHash}/${direction}`);
       runTransaction(voteRef, (current) => (current || 0) + 1);
@@ -38,7 +68,9 @@ export default function useVotes(activeHash) {
     [voted, activeHash]
   );
 
-  const resetVoted = useCallback(() => setVoted(null), []);
+  const resetVoted = useCallback(() => {
+    // Don't clear — let the useEffect on activeHash restore from localStorage
+  }, []);
 
   // Helper to read counts safely
   const getVote = useCallback(
