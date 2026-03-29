@@ -169,7 +169,7 @@ function Clapperboard({ isOpen, onAnimationEnd }) {
           overflow: "hidden",
         }}
       >
-        <ClapperStripes invert={true} skew={-20} origin="top" />
+        <ClapperStripes invert={false} skew={-20} origin="top" />
       </div>
     </div>
   );
