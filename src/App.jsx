@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import takes from "./takes";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import useVotes from "./useVotes";
+import useTakes from "./useTakes";
 
 // Shared stripe elements for both clapper bars.
 // yOffset shifts the stripe origin so skewX alignment is continuous across bars.
@@ -302,16 +302,6 @@ function hashTake(text) {
   return (h >>> 0).toString(36).padStart(6, "0");
 }
 
-// Build a lookup map: hash -> index
-const hashToIndex = Object.fromEntries(takes.map((t, i) => [hashTake(t), i]));
-
-// Read initial take from URL hash
-function getInitialIndex() {
-  const hash = window.location.hash.slice(1);
-  if (hash && hashToIndex[hash] !== undefined) return hashToIndex[hash];
-  return -1;
-}
-
 // Responsive wrapper — scales the 340px clapperboard to fit narrow screens
 const CLAP_NATIVE_W = 340;
 const CLAP_NATIVE_H = 268;
@@ -373,14 +363,35 @@ function useIsMobile(breakpoint = 600) {
 
 export default function App() {
   const isMobile = useIsMobile();
-  const [initialFromUrl] = useState(getInitialIndex() >= 0);
-  const [currentIndex, setCurrentIndex] = useState(getInitialIndex);
+  const { takes, loading } = useTakes();
+
+  // Build hash lookup whenever takes change
+  const hashToIndex = useMemo(
+    () => Object.fromEntries(takes.map((t, i) => [hashTake(t), i])),
+    [takes]
+  );
+
+  // Resolve initial take from URL hash (only on first load after takes arrive)
+  const resolvedInitial = useRef(false);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [isOpen, setIsOpen] = useState(false);
-  const [showTake, setShowTake] = useState(initialFromUrl);
+  const [showTake, setShowTake] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [particles, setParticles] = useState([]);
-  const [takeOpacity, setTakeOpacity] = useState(initialFromUrl ? 1 : 0);
+  const [takeOpacity, setTakeOpacity] = useState(0);
   const { getVote, voted, castVote, resetVoted } = useVotes(takes.length, currentIndex);
+
+  // Once takes are loaded, check if URL hash matches a take
+  useEffect(() => {
+    if (loading || resolvedInitial.current) return;
+    resolvedInitial.current = true;
+    const hash = window.location.hash.slice(1);
+    if (hash && hashToIndex[hash] !== undefined) {
+      setCurrentIndex(hashToIndex[hash]);
+      setShowTake(true);
+      setTakeOpacity(1);
+    }
+  }, [loading, hashToIndex]);
   const [copied, setCopied] = useState(false);
   const particleId = useRef(0);
   const clapSound = useRef(null);
