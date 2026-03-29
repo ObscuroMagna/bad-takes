@@ -44,4 +44,4 @@ export default function useTakes() {
   }, []);
 
   return { takes, loading };
-}
+}
