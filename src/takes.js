@@ -9,6 +9,8 @@ const takes = [
   "Nickelback is genuinely talented",
   "Candy corn is delicious",
   "The Nintendo Switch 2 is bad",
+  "Baseball IS exciting!",
+  "Paddington 2 is the perfect sequel",
 ];
 
 export default takes;
