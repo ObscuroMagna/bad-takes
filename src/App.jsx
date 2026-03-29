@@ -379,7 +379,8 @@ export default function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [particles, setParticles] = useState([]);
   const [takeOpacity, setTakeOpacity] = useState(0);
-  const { getVote, voted, castVote, resetVoted } = useVotes(takes.length, currentIndex);
+  const activeHash = currentIndex >= 0 ? hashTake(takes[currentIndex]) : null;
+  const { getVote, voted, castVote, resetVoted } = useVotes(activeHash);
 
   // Once takes are loaded, check if URL hash matches a take
   useEffect(() => {
@@ -753,7 +754,7 @@ export default function App() {
 
                   {/* Verdict rating */}
                   {(() => {
-                    const { up, down } = getVote(currentIndex);
+                    const { up, down } = getVote(activeHash);
                     const total = up + down;
                     const ratio = total === 0 ? 0.5 : up / total;
                     const verdicts = [

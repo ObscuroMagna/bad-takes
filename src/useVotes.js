@@ -4,14 +4,16 @@ import { ref, onValue, runTransaction } from "firebase/database";
 
 /**
  * Real-time vote hook backed by Firebase Realtime Database.
+ * Votes are keyed by take hash (not index) so they survive reordering.
  *
- * Returns { votes, voted, castVote, resetVoted }
- *   votes   – object keyed by take index, e.g. { 0: { up: 3, down: 1 }, ... }
- *   voted   – "up" | "down" | null  (current user's vote for activeTakeIndex)
+ * Returns { votes, getVote, voted, castVote, resetVoted }
+ *   votes   – object keyed by take hash, e.g. { "1ta3tzf": { up: 9 }, ... }
+ *   getVote(hash) – returns { up, down } for a given take hash
+ *   voted   – "up" | "down" | null  (current user's vote for activeHash)
  *   castVote(direction)  – record a vote for the active take
  *   resetVoted()         – clear local voted state (call when moving to next take)
  */
-export default function useVotes(takeCount, activeTakeIndex) {
+export default function useVotes(activeHash) {
   const [votes, setVotes] = useState({});
   const [voted, setVoted] = useState(null);
 
@@ -27,22 +29,22 @@ export default function useVotes(takeCount, activeTakeIndex) {
   // Cast a vote using a transaction (atomic increment, safe for concurrent users)
   const castVote = useCallback(
     (direction) => {
-      if (voted || activeTakeIndex < 0) return;
+      if (voted || !activeHash) return;
       setVoted(direction);
 
-      const voteRef = ref(db, `votes/${activeTakeIndex}/${direction}`);
+      const voteRef = ref(db, `votes/${activeHash}/${direction}`);
       runTransaction(voteRef, (current) => (current || 0) + 1);
     },
-    [voted, activeTakeIndex]
+    [voted, activeHash]
   );
 
   const resetVoted = useCallback(() => setVoted(null), []);
 
   // Helper to read counts safely
   const getVote = useCallback(
-    (index) => ({
-      up: votes[index]?.up || 0,
-      down: votes[index]?.down || 0,
+    (hash) => ({
+      up: votes[hash]?.up || 0,
+      down: votes[hash]?.down || 0,
     }),
     [votes]
   );
