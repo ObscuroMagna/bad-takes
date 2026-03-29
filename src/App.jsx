@@ -2,9 +2,11 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import useVotes from "./useVotes";
 import useTakes from "./useTakes";
 
-// Shared stripe elements for both clapper bars.
-// yOffset shifts the stripe origin so skewX alignment is continuous across bars.
-function ClapperStripes({ invert, yOffset = 0, skew = -20 }) {
+// Stripe elements for clapper bars.
+// For chevron alignment: both bars' stripes share the same x-grid,
+// but skew in opposite directions. The `origin` prop sets which edge
+// of the bar the skew pivots from so the stripes meet cleanly at the seam.
+function ClapperStripes({ invert, skew = -20, origin = "bottom" }) {
   const STRIPE_W = 36;
   const count = 14;
   return (
@@ -13,8 +15,9 @@ function ClapperStripes({ invert, yOffset = 0, skew = -20 }) {
         position: "absolute",
         left: 0,
         right: 0,
-        top: yOffset,
-        bottom: -yOffset,
+        top: 0,
+        bottom: 0,
+        overflow: "hidden",
       }}
     >
       {Array.from({ length: count }).map((_, i) => (
@@ -29,6 +32,7 @@ function ClapperStripes({ invert, yOffset = 0, skew = -20 }) {
             background:
               (invert ? i % 2 !== 0 : i % 2 === 0) ? "#1a1a1a" : "#f5f5f0",
             transform: `skewX(${skew}deg)`,
+            transformOrigin: origin === "bottom" ? "center bottom" : "center top",
           }}
         />
       ))}
@@ -150,7 +154,7 @@ function Clapperboard({ isOpen, onAnimationEnd }) {
             : "0 2px 8px rgba(0,0,0,0.3)",
         }}
       >
-        <ClapperStripes invert={false} skew={20} />
+        <ClapperStripes invert={false} skew={20} origin="bottom" />
       </div>
 
       {/* Bottom clapper bar (static, sits at top of board) */}
@@ -165,7 +169,7 @@ function Clapperboard({ isOpen, onAnimationEnd }) {
           overflow: "hidden",
         }}
       >
-        <ClapperStripes invert={true} yOffset={-CLAP_H} />
+        <ClapperStripes invert={true} skew={-20} origin="top" />
       </div>
     </div>
   );
