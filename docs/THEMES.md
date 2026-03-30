@@ -374,3 +374,6 @@ clapperboard: {
 
 ### Adding a new theme
 1. Define the config object following the structure above
+2. Add it to the theme registry in `src/themes.js`
+3. Set the activation condition (date range, URL param, or Firebase remote config)
+4. Test with `?theme=yourtheme` in the URL

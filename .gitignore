@@ -9,3 +9,4 @@ firebase-migration.json
 votes-migration.json
 migrate-votes.ps1
 bad-takes-migrated.json
+doc_shifter

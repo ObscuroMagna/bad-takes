@@ -2,59 +2,73 @@
 
 A clapperboard app that reveals terrible takes one at a time with a satisfying snap animation. Vote them up or down — votes sync in real time across all viewers.
 
-Click the clapperboard (or shake your phone) to cycle through the takes.
+Click the clapperboard (or shake your phone) to cycle through takes in a random, non-repeating order.
 
-## Getting started
+## Getting Started
 
 ### 1. Set up Firebase
 
 1. Go to [Firebase Console](https://console.firebase.google.com) and create a new project
 2. In Project Settings, add a **Web app** and copy the config values
-3. Go to **Realtime Database** → Create Database → Start in **test mode**
-4. Paste your config into `src/firebase.js`
+3. Go to **Realtime Database** → Create Database
+4. Go to **Authentication** → Sign-in method → enable **Google**
+5. Copy `.env.example` to `.env` and fill in your Firebase config values
 
-### 2. Install and run
+### 2. Firebase Security Rules
+
+In **Realtime Database → Rules**, set:
+
+```json
+{
+  "rules": {
+    "takes": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'your-email@gmail.com'"
+    },
+    "votes": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
+```
+
+Replace with your Google account email. This means anyone can read and vote, but only you can manage takes.
+
+### 3. Install and Run
 
 ```
 npm install
 npm run dev
 ```
 
-## Adding your own takes
+## Managing Takes
 
-Edit `src/takes.js` — it's just an array of strings:
+Takes are stored in Firebase and can be managed without redeploying.
 
-```js
-const takes = [
-  "Your hot take here",
-  "Another scorching opinion",
-];
+### CLI Tool
 
-export default takes;
+```
+node takes-cli.mjs login                    # Sign in with Google
+node takes-cli.mjs list                     # List all takes with indices
+node takes-cli.mjs add "Your hot take"      # Add a new take
+node takes-cli.mjs remove 3                 # Remove take at index 3
+node takes-cli.mjs swap 0 5                 # Swap two takes
+node takes-cli.mjs count                    # Show total take count
+node takes-cli.mjs tally                    # Show vote totals per take
+node takes-cli.mjs logout                   # Clear saved auth token
 ```
 
-## Firebase security rules (optional)
+The CLI requires Google OAuth. On first use, it opens a browser for sign-in and caches your token locally in `.auth-token.json`.
 
-For production, replace the default test rules with something like:
+### Fallback Takes
 
-```json
-{
-  "rules": {
-    "votes": {
-      "$takeIndex": {
-        "$direction": {
-          ".read": true,
-          ".write": true,
-          ".validate": "newData.isNumber() && newData.val() === data.val() + 1"
-        }
-      }
-    }
-  }
-}
-```
+If Firebase is unreachable, the app falls back to the hardcoded list in `src/takes.js`.
 
-This allows anyone to read votes but only increment by 1.
+## Deployment
 
-## Built with
+Deployed on Vercel via GitHub integration. Make sure your Vercel environment variables match your `.env` values.
+
+## Built With
 
 React + Vite + Firebase Realtime Database
