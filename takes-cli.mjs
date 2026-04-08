@@ -15,7 +15,9 @@
  *
  * Setup:
  *   1. Enable Google sign-in in Firebase Console > Authentication > Sign-in method
- *   2. Your .env needs VITE_FIREBASE_API_KEY and VITE_FIREBASE_DATABASE_URL
+ *   2. Copy .env.example to .env and fill in your own Firebase project values
+ *      (VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_DATABASE_URL).
+ *      VITE_SITE_URL is optional — used only to print shareable links in `list`.
  */
 
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
@@ -48,17 +50,21 @@ function loadEnv() {
     dbUrl: get("VITE_FIREBASE_DATABASE_URL"),
     apiKey: get("VITE_FIREBASE_API_KEY"),
     authDomain: get("VITE_FIREBASE_AUTH_DOMAIN"),
+    siteUrl: get("VITE_SITE_URL"),
   };
 }
 
 const env = loadEnv();
 
-if (!env.dbUrl) {
-  console.error("  VITE_FIREBASE_DATABASE_URL not found in .env");
-  process.exit(1);
-}
-if (!env.apiKey) {
-  console.error("  VITE_FIREBASE_API_KEY not found in .env");
+const REQUIRED = [
+  ["VITE_FIREBASE_DATABASE_URL", env.dbUrl],
+  ["VITE_FIREBASE_API_KEY", env.apiKey],
+  ["VITE_FIREBASE_AUTH_DOMAIN", env.authDomain],
+];
+const missing = REQUIRED.filter(([, v]) => !v).map(([k]) => k);
+if (missing.length) {
+  console.error(`  Missing required env vars in .env: ${missing.join(", ")}`);
+  console.error("  See .env.example for the full list.");
   process.exit(1);
 }
 
@@ -362,6 +368,7 @@ async function fbPut(path, data) {
 }
 
 // --- Commands ---
+
 async function listTakes() {
   const takes = await fbGet("takes");
   if (!takes || takes.length === 0) {
@@ -372,6 +379,9 @@ async function listTakes() {
   takes.forEach((take, i) => {
     if (take) {
       console.log(`  [${i}]  ${take}`);
+      if (env.siteUrl) {
+        console.log(`        ${env.siteUrl.replace(/\/$/, "")}/#${hashTake(take)}`);
+      }
     }
   });
   console.log();

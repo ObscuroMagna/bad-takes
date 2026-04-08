@@ -67,8 +67,12 @@ If Firebase is unreachable, the app falls back to the hardcoded list in `src/tak
 
 ## Deployment
 
-Deployed on Vercel via GitHub integration. Make sure your Vercel environment variables match your `.env` values.
+Any static host that supports Vite + environment variables works (Vercel, Netlify, Cloudflare Pages, etc.). Set the same `VITE_FIREBASE_*` variables from your `.env` in your host's environment settings.
 
 ## Built With
 
 React + Vite + Firebase Realtime Database
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). Copyright 2026 Ethan.

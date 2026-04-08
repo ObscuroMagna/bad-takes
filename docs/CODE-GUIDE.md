@@ -120,7 +120,7 @@ Node.js script for managing takes from the terminal. No build step needed — ju
 
 Auth flow: starts a local HTTP server on port 9876 (localhost only), serves a page with the Firebase JS SDK that does Google sign-in via popup. The token gets sent back to the CLI server and cached in `.auth-token.json`. Tokens auto-refresh.
 
-Reads `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, and `VITE_FIREBASE_DATABASE_URL` from your `.env` file.
+Reads `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, and `VITE_FIREBASE_DATABASE_URL` from your `.env` file. Optionally reads `VITE_SITE_URL` to print shareable per-take links in the `list` output.
 
 The `tally` command includes its own copy of `hashTake()` to match take text to vote keys — keep this in sync with the one in `App.jsx`.
 
