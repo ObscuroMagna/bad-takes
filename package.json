@@ -20,6 +20,6 @@
   "description": "A clapperboard app that reveals terrible takes one at a time with a satisfying snap animation.",
   "main": "vite.config.js",
   "keywords": [],
-  "author": "Obscuromagna <obscuromagna@pm.me>",
+  "author": "Obscuromagna (https://github.com/ObscuroMagna)",
   "license": "SEE LICENSE IN LICENSING.md"
 }

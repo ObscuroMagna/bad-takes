@@ -1,0 +1,35 @@
+name: Commercial License Inquiry
+description: Inquire about a commercial license for Bad Takes (use if AGPL-3.0 doesn't work for you).
+title: "[License] "
+labels: ["commercial-license"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bad Takes is dual-licensed under AGPL-3.0 + a commercial license.
+        See [LICENSING.md](../blob/master/LICENSING.md) for the full explanation.
+
+        Use this template to start a conversation about a commercial license.
+        Initial discussion happens in the issue; once we've established context,
+        we can take the negotiation off-platform if needed.
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Intended use
+      description: Briefly describe how you want to use Bad Takes and why AGPL-3.0 doesn't fit.
+    validations:
+      required: true
+  - type: input
+    id: org
+    attributes:
+      label: Organization (optional)
+      description: Company or project name, if applicable.
+    validations:
+      required: false
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope (optional)
+      description: Distribution model, expected user count, hosted vs. shipped, etc. Anything that helps scope the conversation.
+    validations:
+      required: false

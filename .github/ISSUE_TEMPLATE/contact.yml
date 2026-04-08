@@ -1,0 +1,29 @@
+name: General Contact
+description: Bug reports, feedback, questions, or anything else not covered by the other templates.
+title: "[Contact] "
+labels: ["contact"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for general contact — bug reports, feedback,
+        questions, or anything else. For take submissions or commercial
+        license inquiries, please use those dedicated templates instead.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of message is this?
+      options:
+        - Bug report
+        - Feedback / suggestion
+        - Question
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: Message
+      description: Tell us what's on your mind. For bug reports, please include what you were doing and what went wrong.
+    validations:
+      required: true

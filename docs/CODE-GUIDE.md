@@ -6,12 +6,19 @@ A walkthrough of the codebase so you can find and edit things yourself.
 
 ```
 src/
-  App.jsx          Everything — components, hooks, layout, animations
+  App.jsx          Clapperboard app — components, hooks, layout, animations
+  InfoPages.jsx    Footer + About/Privacy/Submit modal overlays
   firebase.js      Firebase init (reads VITE_ env vars)
   useTakes.js      Hook: fetches takes from Firebase, falls back to takes.js
   useVotes.js      Hook: real-time votes from Firebase + localStorage persistence
   takes.js         Hardcoded fallback takes (array of strings)
   main.jsx         React 18 entry point (just renders <App />)
+
+.github/ISSUE_TEMPLATE/
+  submit-a-take.yml      Issue form for community take submissions
+  contact.yml            General contact: bugs, feedback, questions
+  commercial-license.yml Issue form for commercial license inquiries
+  config.yml             Disables blank issues
 
 public/
   clap.mp3         Clapperboard sound effect
@@ -99,6 +106,15 @@ An inline IIFE inside the JSX calculates the verdict from the up/down vote ratio
 - 41–60% → MEH
 - 61–80% → SOLID TAKE
 - 81–100% → CERTIFIED BANGER
+
+## InfoPages.jsx
+
+Exports two components consumed by `App.jsx`:
+
+- **`Footer`** — small uppercase link row pinned to the bottom of the viewport via `marginTop: auto` on the outer flex column. Buttons call `onOpen("about" | "privacy" | "submit")`; the GitHub source link is a plain `<a>`.
+- **`InfoModal`** — full-screen dimmed overlay with a centered card. Closes on backdrop click, the × button, or `Escape`. Locks body scroll while open. Content for each modal type lives in the `MODAL_CONTENT` map at the top of the file — edit there to change copy.
+
+The Submit modal CTA links to a pre-filled GitHub issue using the `submit-a-take.yml` template under `.github/ISSUE_TEMPLATE/`. Same pattern is used for commercial license inquiries from `LICENSING.md` / `README.md`. There is no email contact path anywhere in the project — all inbound contact routes through GitHub Issues.
 
 ## useTakes.js
 

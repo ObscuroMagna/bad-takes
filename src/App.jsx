@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import useVotes from "./useVotes";
 import useTakes from "./useTakes";
+import { Footer, InfoModal } from "./InfoPages";
 
 // Stripe elements for clapper bars.
 // For chevron alignment: both bars' stripes share the same x-grid,
@@ -398,6 +399,7 @@ export default function App() {
     }
   }, [loading, hashToIndex]);
   const [copied, setCopied] = useState(false);
+  const [infoModal, setInfoModal] = useState(null);
   const particleId = useRef(0);
   const clapSound = useRef(null);
   const shuffleQueue = useRef([]);
@@ -1005,7 +1007,41 @@ export default function App() {
           TAP CLAPPERBOARD OR SHAKE FOR NEXT TAKE
         </p>
       )}
+
+      <button
+        type="button"
+        onClick={() => setInfoModal("submit")}
+        style={{
+          marginTop: 28,
+          background: "rgba(255,200,50,0.12)",
+          border: "1px solid rgba(255,200,50,0.4)",
+          color: "#ffc832",
+          borderRadius: 999,
+          padding: "11px 24px",
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: 0.8,
+          textTransform: "uppercase",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          transition: "all 0.2s ease",
+          boxShadow: "0 4px 20px rgba(255,200,50,0.08)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "rgba(255,200,50,0.18)";
+          e.currentTarget.style.borderColor = "rgba(255,200,50,0.6)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "rgba(255,200,50,0.12)";
+          e.currentTarget.style.borderColor = "rgba(255,200,50,0.4)";
+        }}
+      >
+        + Submit a Take
+      </button>
       </div>
+
+      <Footer onOpen={setInfoModal} />
+      <InfoModal type={infoModal} onClose={() => setInfoModal(null)} />
     </div>
   );
 }

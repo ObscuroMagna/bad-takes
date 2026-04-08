@@ -1,0 +1,30 @@
+name: Submit a Take
+description: Suggest a new bad take to be added to the rotation.
+title: "[Take] "
+labels: ["take-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got a take so bad it deserves a place in the lineup? Drop it below.
+
+        **Guidelines:**
+        - One take per submission. Open multiple issues for multiple takes.
+        - Keep it short — ideally under 120 characters.
+        - No slurs, harassment, or targeting real people. Bad takes, not bad behavior.
+        - Duplicates will be closed. Glance through existing issues and the live site first.
+  - type: textarea
+    id: take
+    attributes:
+      label: The take
+      description: Write the take exactly as you'd want it to appear on the site.
+      placeholder: e.g. "Cereal is just cold soup"
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why this take? (optional)
+      description: A sentence on why you think this earns a spot. Helps with triage.
+    validations:
+      required: false

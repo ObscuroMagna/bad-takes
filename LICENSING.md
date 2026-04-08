@@ -31,9 +31,10 @@ is **not compatible with AGPL-3.0** — for example:
 
 …then you need a separate commercial license from the copyright holder.
 
-Commercial licenses are negotiated individually. To inquire, contact:
-
-**obscuromagna@pm.me**
+Commercial licenses are negotiated individually. To inquire, open a
+[Commercial License Inquiry issue](https://github.com/ObscuroMagna/bad-takes/issues/new?template=commercial-license.yml)
+on the GitHub repo. Initial discussion happens in the issue; we can take
+the conversation off-platform once context is established.
 
 ## Contributions
 

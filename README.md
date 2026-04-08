@@ -84,6 +84,6 @@ Bad Takes is dual-licensed:
   without releasing your changes.
 
 See [LICENSING.md](LICENSING.md) for the full explanation. For commercial
-license inquiries, contact **obscuromagna@pm.me**.
+license inquiries, open a [Commercial License Inquiry issue](https://github.com/ObscuroMagna/bad-takes/issues/new?template=commercial-license.yml).
 
 Copyright © 2026 Obscuromagna.
