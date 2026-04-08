@@ -75,4 +75,15 @@ React + Vite + Firebase Realtime Database
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE). Copyright 2026 Ethan.
+Bad Takes is dual-licensed:
+
+- **[AGPL-3.0](LICENSE)** — free for personal use, self-hosting, and any
+  project you're willing to also release as open source under AGPL-3.0.
+- **Commercial license** — required if you want to use Bad Takes in a
+  closed-source or proprietary product, or run a modified hosted version
+  without releasing your changes.
+
+See [LICENSING.md](LICENSING.md) for the full explanation. For commercial
+license inquiries, contact **obscuromagna@pm.me**.
+
+Copyright © 2026 Obscuromagna.
